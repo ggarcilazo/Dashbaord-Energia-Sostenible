@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Consumo Energético UCV</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="material-icons-outlined">public</span>
+            </div>
+            <nav class="menu">
+                <div class="user-greeting">
+                    <p>¡HOLA BRUNO,</p>
+                    <p>bienvenido a la Plataforma de Energía UCV!</p>
+                </div>
+
+                <div class="menu-item active">
+                    <span class="material-icons-outlined">home</span>
+                    <span>Overview</span>
+                    <span class="dot"></span>
+                </div>
+                <div class="menu-item">
+                    <span class="material-icons-outlined">apartment</span>
+                    <span>Ve Edificios</span>
+                </div>
+                <div class="menu-item">
+                    <span class="material-icons-outlined">category</span>
+                    <span>Recursos</span>
+                </div>
+                <div class="menu-item">
+                    <span class="material-icons-outlined">chat_bubble_outline</span>
+                    <span>Mensaje</span>
+                </div>
+                <div class="menu-item">
+                    <span class="material-icons-outlined">settings</span>
+                    <span>Configuraciones</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <img src="placeholder-user.png" alt="Usuario" class="user-img-side">
+                <div class="more-info">
+                    <p class="conocemas">Conoce mas!</p>
+                    <button class="ayuda-btn">AYUDA? <span class="material-icons-outlined">chevron_right</span></button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Resumen de Consumo Energético del Campus UCV</h1>
+                <div class="search-bar">
+                    <span class="material-icons-outlined">search</span>
+                    <input type="text" placeholder="Search...">
+                </div>
+            </header>
+
+            <section class="progress-cards-grid">
+                <div class="progress-card card-ingeneria">
+                    <h3>Facultad de Ingeniería</h3>
+                    <p>35 lessons</p>
+                    <div class="progress-circle">
+                        <div class="circle-inner">75%</div>
+                    </div>
+                </div>
+
+                <div class="progress-card card-administracion">
+                    <h3>Edificio de Administración</h3>
+                    <p>30 lessons</p>
+                    <div class="progress-circle">
+                        <div class="circle-inner">90%</div>
+                    </div>
+                </div>
+
+                <div class="progress-card card-biblioteca">
+                    <h3>Biblioteca</h3>
+                    <p>20 lessons</p>
+                    <div class="progress-circle">
+                        <div class="circle-inner">25%</div>
+                    </div>
+                </div>
+
+                <div class="progress-card card-estudiantes">
+                    <h3>Centro de Estudiantes</h3>
+                    <p>40 lessons</p>
+                    <div class="progress-circle">
+                        <div class="circle-inner">75%</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="alerts-section">
+                <h2>Alertas y Recomendaciones en Tiempo Real</h2>
+                <div class="alert-header-date">
+                    <span class="material-icons-outlined">calendar_today</span>
+                    <span>11 NOVIEMBRE 2025</span>
+                </div>
+
+                <div class="alert-box">
+                    <span class="alert-label">ALERTA</span>
+                    <p>Advertencia: Consumo elevado en el Laboratorio B de Ingeniería. Lucas encendió fuera de horario</p>
+                    <span class="material-icons-outlined">more_vert</span>
+                </div>
+
+                <div class="recommendations-grid">
+                    <div class="recommendation-card card-listening-i">
+                        <div class="icon-wrap"><span class="material-icons-outlined">headphones</span></div>
+                        <div class="content">
+                            <h4>Listening - Intermediate Topic 1</h4>
+                            <p>03:00 PM - 04:00 PM</p>
+                        </div>
+                        <span class="material-icons-outlined">more_vert</span>
+                    </div>
+
+                    <div class="recommendation-card card-speaking-a">
+                        <div class="icon-wrap"><span class="material-icons-outlined">mic</span></div>
+                        <div class="content">
+                            <h4>Speaking - Advanced Topic 1</h4>
+                            <p>07:30 PM - 08:30 PM</p>
+                        </div>
+                        <span class="material-icons-outlined">more_vert</span>
+                    </div>
+
+                    <div class="recommendation-card card-speaking-b">
+                        <div class="icon-wrap"><span class="material-icons-outlined">mic</span></div>
+                        <div class="content">
+                            <h4>Speaking - Beginner Topic 1</h4>
+                            <p>03:00 PM - 04:00 PM</p>
+                        </div>
+                        <span class="material-icons-outlined">more_vert</span>
+                    </div>
+
+                    <div class="recommendation-card card-listening-b">
+                        <div class="icon-wrap"><span class="material-icons-outlined">headphones</span></div>
+                        <div class="content">
+                            <h4>Listening - Beginner Topic 2</h4>
+                            <p>03:00 AM - 12:00 PM</p>
+                        </div>
+                        <span class="material-icons-outlined">more_vert</span>
+                    </div>
+
+                    <div class="recommendation-card card-grammar">
+                        <div class="icon-wrap"><span class="material-icons-outlined">edit_note</span></div>
+                        <div class="content">
+                            <h4>Grammar - Intermediate Topic 2</h4>
+                            <p>03:00 AM - 12:00 PM</p>
+                        </div>
+                        <span class="material-icons-outlined">more_vert</span>
+                    </div>
+
+                    <div class="recommendation-card card-reading">
+                        <div class="icon-wrap"><span class="material-icons-outlined">menu_book</span></div>
+                        <div class="content">
+                            <h4>Reading - Advanced Topic 1</h4>
+                            <p>03:00 AM - 12:00 PM</p>
+                        </div>
+                        <span class="material-icons-outlined">more_vert</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <aside class="right-sidebar">
+            <header class="user-profile">
+                <span class="material-icons-outlined bell-icon">notifications_none</span>
+                <div class="profile-info">
+                    <p>Bruno Fernandes</p>
+                    <img src="placeholder-user-avatar.png" alt="Avatar" class="profile-avatar">
+                </div>
+            </header>
+
+            <section class="statistics">
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card stat-monitoreados">
+                        <h4>Edificios Monitoreados</h4>
+                        <div class="stat-value">
+                            <span>|</span>
+                            <span>02</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-ahorrada">
+                        <h4>Energía Total Ahorrada</h4>
+                        <div class="stat-value">
+                            <span>|</span>
+                            <span>250</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-consumo">
+                        <h4>Áreas de Alto Consumo</h4>
+                        <div class="stat-value">
+                            <span>|</span>
+                            <span>03</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-activadas">
+                        <h4>Alertas Activadas</h4>
+                        <div class="stat-value">
+                            <span>|</span>
+                            <span>05</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="activity">
+                <h2>Activity</h2>
+                <div class="activity-tabs">
+                    <span class="tab-day active">Day</span>
+                    <span class="tab-week">Week</span>
+                    <span class="tab-month">Month</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </section>
+        </aside>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
