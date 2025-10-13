@@ -1,0 +1,500 @@
+/* Variables de Color y Tipografía */
+:root {
+    --color-bg: #f5f8ff; /* Fondo general azul claro */
+    --color-sidebar: #ffffff; /* Fondo de barras laterales y principal */
+    --color-primary-blue: #007bff; /* Azul primario (para botones o énfasis) */
+    --color-text-dark: #333333; /* Texto principal oscuro */
+    --color-text-light: #7a869e; /* Texto secundario/gris */
+
+    /* Colores de las tarjetas de progreso */
+    --color-ing-bg: #e1e9ff;
+    --color-ing-primary: #3f51b5; /* Azul oscuro para el círculo */
+
+    --color-admin-bg: #ffe4cc;
+    --color-admin-primary: #ff9800; /* Naranja para el círculo */
+
+    --color-biblio-bg: #d4edc3;
+    --color-biblio-primary: #8bc34a; /* Verde claro para el círculo */
+
+    --color-estud-bg: #ffe08a;
+    --color-estud-primary: #ffc107; /* Amarillo para el círculo */
+
+    /* Colores de las cards de recomendación */
+    --card-green: #e9f5e9;
+    --card-yellow: #fff3e0;
+    --card-orange: #ffe0b2;
+
+    /* Sombra suave */
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.05);
+    
+    /* Fuente: Poppins se ve similar y es de Google Fonts */
+    --font-family: 'Poppins', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text-dark);
+    font-size: 14px;
+}
+
+/* ------------------- DASHBOARD CONTAINER (GRID PRINCIPAL) ------------------- */
+.dashboard-container {
+    display: grid;
+    /* Grid de 3 columnas: Sidebar Izquierda (pequeña), Contenido Principal (grande), Sidebar Derecha (mediana) */
+    grid-template-columns: 80px 1fr 300px; 
+    height: 100vh;
+    background-color: var(--color-sidebar);
+    gap: 0; /* Sin espacio entre las columnas */
+}
+
+/* ------------------- SIDEBAR IZQUIERDA ------------------- */
+.sidebar {
+    background-color: var(--color-sidebar);
+    border-right: 1px solid #eee;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.logo .material-icons-outlined {
+    font-size: 32px;
+    color: var(--color-primary-blue);
+}
+
+.menu {
+    width: 100%;
+    margin-top: 50px;
+    flex-grow: 1; /* Permite que el menú ocupe el espacio central */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-greeting {
+    background: url('path/to/illustration.png') no-repeat center bottom / contain; /* Placeholder para la ilustración */
+    padding: 0 10px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--color-text-light);
+    margin-bottom: 20px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    position: relative;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f0f4f9;
+}
+
+.menu-item.active {
+    color: var(--color-primary-blue);
+}
+
+.menu-item.active .dot {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--color-primary-blue);
+}
+
+.menu-item span:nth-child(2) {
+    /* Texto del menú, oculto en la imagen */
+    display: none; 
+}
+
+.menu-item .material-icons-outlined {
+    font-size: 24px;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 20px 0;
+    /* Para simular la imagen de la chica con laptop */
+    background: url('placeholder-illustration.png') no-repeat center 20px / 80%; 
+    height: 200px;
+    justify-content: flex-end;
+}
+
+.conocemas {
+    font-size: 10px;
+    color: var(--color-text-light);
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.ayuda-btn {
+    background-color: #f0f4f9;
+    color: var(--color-primary-blue);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.ayuda-btn .material-icons-outlined {
+    font-size: 14px;
+}
+
+
+/* ------------------- CONTENIDO PRINCIPAL ------------------- */
+.main-content {
+    background-color: var(--color-bg);
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.main-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-sidebar);
+    border-radius: 8px;
+    padding: 5px 10px;
+    box-shadow: var(--shadow-light);
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    padding: 5px 10px;
+    background: transparent;
+}
+
+.search-bar .material-icons-outlined {
+    font-size: 20px;
+    color: var(--color-text-light);
+}
+
+/* Bloque de Tarjetas de Progreso (Grid 2x2) */
+.progress-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.progress-card {
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 150px;
+}
+
+.progress-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.progress-card p {
+    font-size: 12px;
+    color: var(--color-text-light);
+}
+
+/* Estilos Específicos de las Tarjetas de Progreso */
+.card-ingeneria { background-color: var(--color-ing-bg); }
+.card-administracion { background-color: var(--color-admin-bg); }
+.card-biblioteca { 
+    background-color: var(--color-biblio-bg); 
+    /* Simular la pila de libros detrás del porcentaje */
+    background-image: url('placeholder-books.png');
+    background-position: right bottom;
+    background-repeat: no-repeat;
+    background-size: 100px;
+}
+.card-estudiantes { background-color: var(--color-estud-bg); }
+
+/* Círculo de Progreso (Usando CSS Conic Gradient para simplicidad visual) */
+.progress-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    margin-top: 15px;
+}
+
+.circle-inner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--color-sidebar);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Aplicando el gradiente cónico para simular el progreso */
+.card-ingeneria .progress-circle { 
+    background: conic-gradient(var(--color-ing-primary) 270deg, #ffffff 0deg); /* 75% */
+}
+.card-administracion .progress-circle { 
+    background: conic-gradient(var(--color-admin-primary) 324deg, #ffffff 0deg); /* 90% */
+}
+.card-biblioteca .progress-circle { 
+    background: conic-gradient(var(--color-biblio-primary) 90deg, #ffffff 0deg); /* 25% */
+}
+.card-estudiantes .progress-circle { 
+    background: conic-gradient(var(--color-estud-primary) 270deg, #ffffff 0deg); /* 75% */
+}
+
+/* Alertas y Recomendaciones */
+.alerts-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.alert-header-date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--color-text-light);
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.alert-box {
+    background-color: var(--color-sidebar);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.alert-label {
+    background-color: #ffcccc;
+    color: #ff0000;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.alert-box p {
+    flex-grow: 1;
+    font-size: 13px;
+    margin: 0;
+}
+
+.alert-box .material-icons-outlined {
+    color: var(--color-text-light);
+    cursor: pointer;
+}
+
+/* Grid de Recomendaciones */
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.recommendation-card {
+    background-color: var(--color-sidebar);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recommendation-card h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.recommendation-card p {
+    font-size: 11px;
+    color: var(--color-text-light);
+}
+
+.recommendation-card .icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.recommendation-card .material-icons-outlined {
+    font-size: 20px;
+}
+
+/* Colores específicos de las tarjetas */
+.card-listening-i .icon-wrap, .card-listening-b .icon-wrap { background-color: var(--card-green); color: #4CAF50; }
+.card-speaking-a .icon-wrap, .card-speaking-b .icon-wrap { background-color: var(--card-yellow); color: #FFC107; }
+.card-grammar .icon-wrap { background-color: var(--card-orange); color: #FF9800; }
+.card-reading .icon-wrap { background-color: #e3f2fd; color: #2196F3; }
+
+/* ------------------- RIGHT SIDEBAR (Estadísticas) ------------------- */
+.right-sidebar {
+    background-color: var(--color-sidebar);
+    border-left: 1px solid #eee;
+    padding: 30px 20px;
+    overflow-y: auto;
+}
+
+.user-profile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.bell-icon {
+    font-size: 24px;
+    color: var(--color-text-light);
+    background-color: #f0f4f9;
+    padding: 5px;
+    border-radius: 50%;
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-info p {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ddd; /* Placeholder */
+    object-fit: cover;
+}
+
+/* Bloque de Estadísticas */
+.statistics h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background-color: var(--color-bg);
+    padding: 15px;
+    border-radius: 12px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stat-card h4 {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-light);
+}
+
+.stat-value {
+    display: flex;
+    align-items: baseline;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-primary-blue);
+    gap: 5px;
+}
+
+.stat-value span:first-child {
+    font-weight: 300;
+    font-size: 32px;
+    line-height: 1;
+}
+
+/* Actividad (Gráfico) */
+.activity h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.activity-tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--color-text-light);
+}
+
+.activity-tabs span {
+    cursor: pointer;
+    padding-bottom: 2px;
+    transition: color 0.2s;
+}
+
+.activity-tabs .active {
+    color: var(--color-text-dark);
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-primary-blue);
+}
+
+.chart-container {
+    height: 200px; /* Altura para el gráfico */
+    width: 100%;
+}
