@@ -1,0 +1,757 @@
+/* =======================================
+   1. VARIABLES, RESET BÁSICO Y FUENTE
+   ======================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* Colores UCV Soberbios */
+    --color-primary: #1a237e; /* Azul Marino Profundo (UCV base) */
+    --color-secondary: #ffb300; /* Naranja/Dorado (Acento) */
+    --color-text-dark: #212529;
+    --color-text-light: #555;
+    --color-bg-light: #f8f9fa;
+    --color-bg-white: #ffffff;
+    --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --radius-default: 8px;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-bg-light);
+    color: var(--color-text-light);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* =======================================
+   2. ESTRUCTURA PRINCIPAL DE LA APLICACIÓN
+   ======================================= */
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- BARRA LATERAL (SIDEBAR) --- */
+.sidebar {
+    width: 250px;
+    background-color: var(--color-primary); 
+    color: var(--color-bg-white);
+    padding: 25px 0;
+    flex-shrink: 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: margin-left 0.3s;
+}
+
+.brand {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.brand img {
+    width: 55px; 
+    height: auto;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.brand::before {
+    content: "Energy UCV";
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-secondary);
+}
+
+.sidebar nav a {
+    display: flex;
+    align-items: center;
+    padding: 15px 30px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.85);
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: 500;
+    gap: 10px;
+}
+
+.sidebar nav a:hover {
+    background-color: #39428b;
+    color: var(--color-bg-white);
+}
+
+.sidebar nav a.active {
+    background-color: #2c387e; 
+    color: var(--color-bg-white);
+    border-left: 5px solid var(--color-secondary); 
+    font-weight: 600;
+}
+
+/* --- CONTENIDO PRINCIPAL (MAIN) --- */
+.main {
+    flex-grow: 1;
+    padding: 30px;
+    overflow-x: hidden; 
+}
+
+/* --- BARRA SUPERIOR (TOPBAR) --- */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.topbar h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user span {
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+/* =======================================
+   3. BOTONES Y ACCIONES
+   ======================================= */
+.actions-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap; 
+}
+
+.login-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-default);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    background-color: var(--color-primary);
+    color: var(--color-bg-white);
+    transition: background-color 0.2s, transform 0.1s;
+    flex-grow: 1; 
+    min-width: 150px; 
+}
+
+.login-button:hover {
+    background-color: #39428b;
+    transform: translateY(-1px);
+}
+
+/* Botones de colores específicos para jerarquía */
+.btn-logout {
+    background-color: var(--color-bg-white);
+    color: var(--color-text-light);
+    border: 1px solid #ccc;
+    min-width: unset; 
+    flex-grow: 0;
+}
+
+.btn-logout:hover {
+    background-color: #e9ecef;
+}
+
+.btn-pdf { background-color: #28a745; } 
+.btn-pdf:hover { background-color: #1e7e34; }
+
+.btn-delete { background-color: #dc3545; } 
+.btn-delete:hover { background-color: #c82333; }
+
+.btn-meta { background-color: #007bff; } 
+.btn-meta:hover { background-color: #0069d9; }
+
+/* =======================================
+   4. GRID DE CONTENIDO (Desktop Base)
+   ======================================= */
+.content-grid {
+    display: grid;
+    grid-template-columns: 3fr 2fr; /* Layout 60/40 en desktop */
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+/* --- COLUMNA IZQUIERDA --- */
+.col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* --- TARJETAS (CARDS) --- */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columnas en desktop */
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--color-bg-white);
+    padding: 20px;
+    border-radius: var(--radius-default);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.card h3 {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+}
+
+.card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    word-break: break-word; 
+}
+
+/* Colores de las tarjetas - Acentos */
+.card-blue .card-value { color: #007bff; }
+.card-orange .card-value { color: var(--color-secondary); }
+.card-green .card-value { color: #28a745; }
+.card-yellow .card-value { color: #ffc107; }
+
+/* --- PANEL DE ALERTAS / ACTIVIDAD --- */
+.alerts-panel, .activity, .table-wrap {
+    background-color: var(--color-bg-white);
+    padding: 25px;
+    border-radius: var(--radius-default);
+    box-shadow: var(--shadow-subtle);
+}
+
+.activity {
+    flex-grow: 1;
+}
+
+
+/* --- COLUMNA DERECHA --- */
+/* --- STATS (Cajas de estadísticas) --- */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-box {
+    background-color: var(--color-bg-white);
+    padding: 20px 15px;
+    border-radius: var(--radius-default);
+    text-align: center;
+    box-shadow: var(--shadow-card);
+}
+
+.stat-box small { font-size: 11px; }
+
+.stat-box div {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin-top: 5px;
+}
+
+/* =======================================
+   5. TABLA DE REGISTROS (Table)
+   ======================================= */
+.tbl {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0;
+    margin-top: 15px;
+    overflow: hidden; 
+}
+
+.tbl thead th {
+    text-align: left;
+    padding: 12px 20px;
+    background-color: var(--color-primary);
+    color: var(--color-bg-white);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tbl tbody td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: var(--color-text-dark);
+}
+
+.table-wrap {
+    overflow-x: auto; 
+}
+
+/* =======================================
+   6. MODAL (Mejorado para un look más compacto y elegante)
+   ======================================= */
+.modal-overlay {
+    display: none; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: var(--color-bg-white);
+    padding: 30px;
+    border-radius: 12px; /* Aumentado el radio para más suavidad */
+    width: 90%;
+    max-width: 450px; /* CRÍTICO: Reducido el max-width para que se vea más como una "caja" centrada */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Sombra más pronunciada para darle profundidad */
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    font-size: 22px;
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.close-btn {
+    /* Mejor estilo para el botón de cerrar */
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: #f1f1f1;
+    color: #6c757d;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    line-height: 1; /* Asegura que el X esté centrado */
+}
+
+.close-btn:hover {
+    background-color: #e9ecef;
+    color: var(--color-text-dark);
+}
+
+.modal-body label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-text-dark);
+}
+
+.modal-body input[type="text"],
+.modal-body input[type="number"],
+.modal-body input[type="date"],
+.modal-body select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.modal-body input:focus,
+.modal-body select:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(26, 35, 126, 0.25); /* Sombra de enfoque UCV */
+}
+
+.modal-body button.login-button {
+    margin-top: 20px;
+}
+
+
+/* --- SECCIÓN DE BOTONES DE EDICIÓN/ELIMINACIÓN DENTRO DEL FORMULARIO --- */
+.hidden-edit-section {
+    display: none;
+    margin-top: 25px; /* Más espacio */
+    padding-top: 20px; /* Más padding */
+    border-top: 1px dashed #e0e0e0; /* Línea separadora más suave */
+}
+
+.form-buttons-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: space-between; /* Alinea los botones */
+}
+
+.form-buttons-row .login-button {
+    width: 50%;
+    margin-top: 0; 
+    padding: 12px 20px; /* Más padding para los botones de acción */
+}
+
+.form-buttons-row .btn-delete {
+    background-color: #dc3545; /* Vuelve al rojo para DELETE, es más claro */
+}
+
+.form-buttons-row .btn-delete:hover {
+    background-color: #c82333;
+}
+
+
+/* =======================================
+   7. ESTILOS DE ALERTAS (Mejorado)
+   ======================================= */
+.alerts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.alerts-stats-text {
+    font-size: 13px;
+    color: var(--color-text-light);
+    font-weight: 500;
+}
+
+.empty-alerts-message {
+    text-align: center;
+    padding: 30px 0;
+    color: #888;
+    font-style: italic;
+}
+
+/* Títulos de sección */
+.alert-title {
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.alert-title-high { color: #dc3545; } 
+.alert-title-moderate { color: #ffc107; } 
+.alert-title-good { color: #28a745; } 
+
+/* Fila de alerta */
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    border: 1px solid;
+}
+
+/* Estilos de fondo y borde */
+.alert-high-bg {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-moderate-bg {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
+}
+
+.alert-good-bg {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-detail-text {
+    font-size: 12px;
+    margin-top: 3px;
+    opacity: 0.8;
+}
+
+.alert-icon {
+    font-size: 20px;
+}
+
+
+/* =======================================
+   8. RESPONSIVE DESIGN (Media Queries)
+   ======================================= */
+
+/* --- TABLETS (Menos de 1024px) --- */
+@media (max-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+    .cards {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+    .main {
+        padding: 20px;
+    }
+    .topbar h1 {
+        font-size: 22px;
+    }
+}
+
+
+/* --- TABLETS/MÓVILES (Menos de 768px) --- */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: fixed;
+        height: auto;
+        padding: 15px 0;
+        z-index: 500;
+        display: none; 
+    }
+    
+    .app {
+        flex-direction: column; 
+    }
+
+    .main {
+        padding: 15px;
+        margin-top: 0; 
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .topbar h1 {
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+
+    .user {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .actions-bar {
+        gap: 8px;
+    }
+    
+    .login-button {
+        padding: 10px 15px;
+        font-size: 13px;
+        min-width: unset;
+    }
+
+    .stat-box div {
+        font-size: 24px;
+    }
+
+    .tbl thead th {
+        font-size: 12px;
+        padding: 10px 15px;
+    }
+    .tbl tbody td {
+        font-size: 13px;
+        padding: 10px 15px;
+    }
+}
+
+/* --- MÓVILES (Menos de 576px) --- */
+@media (max-width: 576px) {
+    .cards {
+        grid-template-columns: 1fr; 
+    }
+    .stat-box {
+        padding: 15px 10px;
+    }
+    
+    .actions-bar {
+        flex-direction: column; 
+    }
+    
+    .login-button {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+/* =======================================
+   GUIMARBOT IA - WIDGET FLOTANTE
+   ======================================= */
+.ai-widget {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 10000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.ai-icon {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 30px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: floatBot 3s ease-in-out infinite;
+}
+
+.ai-icon:hover {
+  transform: scale(1.1);
+  background: #39428b;
+}
+
+@keyframes floatBot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.ai-window {
+  display: none;
+  position: absolute;
+  bottom: 85px;
+  right: 0;
+  width: 350px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  overflow: hidden;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease;
+}
+
+.ai-header {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 10px 15px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-header button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.ai-messages {
+  height: 260px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+
+.ai-bot-msg, .ai-user-msg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  max-width: 85%;
+  font-size: 14px;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.ai-bot-msg {
+  background: #e3f2fd;
+  color: #0d47a1;
+  align-self: flex-start;
+}
+
+.ai-user-msg {
+  background: #e8f5e9;
+  color: #1b5e20;
+  align-self: flex-end;
+}
+
+.ai-input-box {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+
+.ai-input-box input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.ai-input-box button {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  width: 55px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.ai-input-box button:hover {
+  background: #2c387e;
+}
+
+@media (max-width: 600px) {
+  .ai-window {
+    width: 90vw;
+    right: 5vw;
+  }
+}

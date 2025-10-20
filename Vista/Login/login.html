@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/svg+xml" href="/Vista/img/logo1.png" />
+
+    <title>Acceso - Energy UCV</title>
+    <link rel="stylesheet" href="/Vista/CSS/login.css"> 
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module" src="/Modelo/firebase-init.js"></script> 
+
+</head>
+
+<body>
+
+    <div id="notification-container"></div>
+
+    <img src="/Vista/img/ucv_logo.png" alt="Universidad César Vallejo Logo" class="ucv-logo">
+
+    <div class="login-container">
+    
+    <div class="login-form-card">
+        <div class="form-header">
+            <h2 class="welcome-title">¡Bienvenido de Nuevo!</h2>
+            <p class="please-enter">Por favor, ingresa tu correo y contraseña</p>
+        </div>
+
+        <form  id="login-form" action="#" method="POST">
+            
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Correo Electrónico" required> 
+                <span class="icon-email material-icons-outlined">mail_outline</span> </div>
+            
+            <div class="input-group">
+                <input type="password" id="password-input" placeholder="Contraseña" required>
+                <span class="icon-password material-icons-outlined" id="toggle-password-icon">visibility_off</span>
+            </div> 
+
+            <div class="form-footer-controls">
+                <p class="agreement">
+                    Al iniciar sesión, aceptas nuestros 
+                    <a href="TÉRMINOS Y CONDICIONES DE USO DE ENERGY UCV.pdf" class="primary-link" target="_blank" download>Términos y Condiciones</a>
+                </p>
+                <a href="forgot-password.html" class="forgot-password">¿Olvidaste tu Contraseña?</a>
+            </div>
+            
+            <button type="submit" class="login-button">
+                Acceder 
+                <span class="material-icons-outlined">arrow_forward</span>
+            </button>
+            
+        </form>
+
+        <p class="create-account-prompt">
+            ¿No tienes una cuenta? 
+            <a href="create-account.html" class="primary-link">Crear Cuenta</a>
+        </p>
+    </div>
+
+    </div>
+
+    <script type="module">
+    import { loginController, togglePassword } from '/Controlador/controller.js';
+    
+    // Vincula el evento de click al ícono
+    document.getElementById('toggle-password-icon').addEventListener('click', togglePassword); 
+    
+    // ... y tu vinculo de submit:
+    document.getElementById('login-form').addEventListener('submit', loginController);
+    </script>
+
+</body>
+</html>

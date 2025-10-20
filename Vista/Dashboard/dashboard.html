@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard de Energía Responsable UCV</title>
+  <link rel="icon" type="image/svg+xml" href="/Vista/img/logo1.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- CSS del Dashboard -->
+  <link rel="stylesheet" href="../CSS/dashboard.css" />
+
+  <!-- SDKs de Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <!-- Chart.js y jsPDF -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+
+  <!-- Inicializador de Firebase -->
+  <script type="module" src="../../Modelo/firebase-init.js"></script>
+</head>
+
+<body>
+  <div class="app">
+    <!-- ======= SIDEBAR ======= -->
+    <div class="sidebar">
+      <div class="brand">
+        <img src="/Vista/img/logo1.png" alt="UCV Logo" />
+      </div>
+      <nav>
+        <a href="#" class="active">📊 Dashboard</a>
+      </nav>
+    </div>
+
+    <!-- ======= CONTENIDO PRINCIPAL ======= -->
+    <div class="main">
+      <!-- ======= TOPBAR ======= -->
+      <div class="topbar">
+        <h1>Dashboard de Energía Responsable</h1>
+        <div class="user">
+          <span>Admin</span>
+          <button class="login-button btn-logout" id="cerrar-sesion">Salir</button>
+        </div>
+      </div>
+
+      <!-- ======= BARRA DE ACCIONES ======= -->
+      <div class="actions-bar">
+        <button class="login-button" id="subir-datos">➕ Subir Datos Manuales</button>
+        <button class="login-button btn-pdf" id="reporte-pdf">📄 Generar Reporte PDF</button>
+        <button class="login-button btn-delete" id="borrar-todo">✏️ Editar/Eliminar Registros</button>
+        <button class="login-button btn-meta" id="config-metas">🎯 Configurar Metas</button>
+      </div>
+
+      <!-- ======= GRID PRINCIPAL ======= -->
+      <div class="content-grid">
+        <div class="col-left">
+          <div class="cards">
+            <div class="card card-blue">
+              <h3>Facultad de Ingeniería</h3>
+              <div class="card-value" id="fac-ingenieria">0.00 kWh</div>
+            </div>
+            <div class="card card-orange">
+              <h3>Edificio de Administración</h3>
+              <div class="card-value" id="admin">0.00 kWh</div>
+            </div>
+            <div class="card card-green">
+              <h3>Biblioteca</h3>
+              <div class="card-value" id="biblio">0.00 kWh</div>
+            </div>
+            <div class="card card-yellow">
+              <h3>Centro de Estudiantes</h3>
+              <div class="card-value" id="centro">0.00 kWh</div>
+            </div>
+          </div>
+
+          <!-- ======= PANEL DE ALERTAS ======= -->
+          <div class="alerts-panel">
+            <h3>Alertas y Recomendaciones</h3>
+            <div class="alerts-list" id="alerts-list">
+              <p class="empty-alerts-message">Cargando alertas...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======= COLUMNA DERECHA ======= -->
+        <div class="col-right">
+          <div class="stats">
+            <div class="stat-box">
+              <small>Consumo Total</small>
+              <div id="stat-energy">0.00</div>
+            </div>
+            <div class="stat-box">
+              <small>Edificios Monitoreados</small>
+              <div id="stat-edificios">00</div>
+            </div>
+            <div class="stat-box">
+              <small>Áreas con Alerta Alta</small>
+              <div id="stat-areas-alto">00</div>
+            </div>
+            <div class="stat-box">
+              <small>Total Alertas</small>
+              <div id="stat-alerts">00</div>
+            </div>
+          </div>
+
+          <div class="activity">
+            <h3 class="activity-title">Actividad Energética</h3>
+            <div class="chart-wrap">
+              <canvas id="activity-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======= TABLA DE REGISTROS ======= -->
+      <div class="table-wrap">
+        <h3 class="table-title">Registros de Consumo Recientes</h3>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Edificio</th>
+              <th>Consumo (kWh)</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-consumo"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= MODAL GENERAL ======= -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Título del Modal</h3>
+        <span class="close-btn" id="modal-close">×</span>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ======= SCRIPT DEL DASHBOARD ======= -->
+  <script type="module">
+    import { initDashboard } from "../../Controlador/dashboard-controller.js";
+    document.addEventListener("DOMContentLoaded", () => {
+      initDashboard();
+    });
+  </script>
+
+  <!-- ======= GUIMARBOT - ASISTENTE IA ======= -->
+  <div id="ai-widget" class="ai-widget">
+    <div id="ai-icon" class="ai-icon">🤖</div>
+    <div id="ai-window" class="ai-window">
+      <div class="ai-header">
+        <span>Asistente UCV</span>
+        <button id="ai-close">×</button>
+      </div>
+      <div id="ai-messages" class="ai-messages">
+        <div class="ai-bot-msg">
+          👋 ¡Hola! Soy <b>GuimarBot</b>, tu asistente virtual UCV.<br />
+          Pregúntame cualquier cosa.
+        </div>
+      </div>
+      <div class="ai-input-box">
+        <input id="ai-input" type="text" placeholder="Escribe tu mensaje..." />
+        <button id="ai-send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= CONTROLADOR DE GUIMARBOT ======= -->
+  <script type="module" src="../../Controlador/controller.js"></script>
+</body>
+</html>
