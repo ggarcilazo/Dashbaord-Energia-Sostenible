@@ -302,3 +302,44 @@ padding: 40px 20px;
     opacity: 1;
     transform: translateX(0);
 }
+/* ============================
+   SELECT DE ROL (Diseño igual a inputs)
+   ============================ */
+
+.input-group select {
+    width: calc(100% - 30px);
+    padding: 12px 15px;
+    padding-right: 40px; /* espacio para el icono */
+    border: 1px solid var(--color-input-border);
+    border-radius: 8px;
+    font-size: 1em;
+    outline: none;
+    background-color: white;
+    font-family: 'Poppins', sans-serif;
+    color: var(--color-text-dark);
+    appearance: none; /* Oculta la flecha por defecto */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.input-group select:focus {
+    border-color: var(--color-primary-blue);
+}
+
+/* Ícono del select igual que los iconos de los inputs */
+.input-group .icon-role {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 1.2em;
+    pointer-events: none;
+}
+
+/* Ocultar flecha antigua en IE */
+.input-group select::-ms-expand {
+    display: none;
+}

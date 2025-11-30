@@ -1,179 +1,327 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard de Energía Responsable UCV</title>
-  <link rel="icon" type="image/svg+xml" href="/Vista/img/logo1.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Energético UCV</title>
 
-  <!-- CSS del Dashboard -->
-  <link rel="stylesheet" href="../CSS/dashboard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Vista/CSS/dashboard.css">
 
-  <!-- SDKs de Firebase v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-  <!-- Chart.js y jsPDF -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
-
-  <!-- Inicializador de Firebase -->
-  <script type="module" src="../../Modelo/firebase-init.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
-  <div class="app">
-    <!-- ======= SIDEBAR ======= -->
-    <div class="sidebar">
-      <div class="brand">
-        <img src="/Vista/img/logo1.png" alt="UCV Logo" />
-      </div>
-      <nav>
-        <a href="#" class="active">📊 Dashboard</a>
-      </nav>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo">UCV</div>
+
+            <nav class="main-menu">
+                <a href="#" class="menu-item active" id="menu-dashboard" data-view="dashboard-view">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+
+                <a href="#" class="menu-item" id="menu-chat" data-view="chat-view">
+                    <i class="fas fa-comments"></i> Recomendaciones IA
+                </a>
+
+                <!-- 🟢 NUEVO: Botón para la pantalla pública -->
+                <a href="/Vista/Dashboard/public-display.html" class="menu-item" id="menu-public-display"
+                    target="_blank">
+                    <i class="fas fa-tv"></i> Pantalla pública
+                </a>
+                <!-- (Abre en una nueva pestaña la vista de consumo en tiempo real) -->
+            </nav>
+
+            <div class="user-config">
+                <a href="#" class="menu-item"><i class="fas fa-cog"></i> Configuración web</a>
+                <a href="#" class="menu-item"><i class="fas fa-user-circle"></i> Profile</a>
+                <a href="#" class="menu-item"><i class="fas fa-search"></i> Search</a>
+                <a href="#" class="menu-item"><i class="fas fa-question-circle"></i> Help</a>
+            </div>
+
+            <div class="user-profile">
+                <i class="fas fa-user-circle"></i>
+                <span id="current-user-role-label">Usuario</span>
+            </div>
+
+        </aside>
+
+
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <main class="main-content">
+            <!-- ====================== DASHBOARD VIEW ====================== -->
+            <div id="dashboard-view" class="view-content active-view">
+                <header class="main-header">
+                    <button class="menu-toggle-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Dashboard Energético</h1>
+                    <!-- 🔔 Ícono de notificación -->
+                    <i class="fas fa-bell notification-icon" title="Ver alertas"></i>
+                </header>
+
+                <section class="widgets-grid">
+                    <div class="widget wide-widget">
+                        <div class="widget-header-controls">
+                            <h2>Ranking Eficiencia (kWh)</h2>
+                            <select id="ranking-filter" class="data-filter">
+                                <option value="" disabled selected>Seleccione Mes</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="rankingChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="widget small-widget comparison-widget">
+                        <h2>Consumo Histórico Anual</h2>
+                        <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="widget small-widget value-card">
+                        <h2>Pago Acumulado Actual (S/)</h2>
+                        <p class="big-number" id="annual-payment-value">S/ --</p>
+                    </div>
+
+                    <div class="widget small-widget consumo-mensual-widget">
+                        <div class="widget-box">
+                            <p class="widget-title">Consumo Mensual Total (kWh)</p>
+                            <p class="big-number" id="monthly-kwh-total">-- kWh</p>
+                            <div class="monthly-details-section">
+                                <div class="detail-item">
+                                    <span class="detail-label">Pabellones Involucrados:</span>
+                                    <span class="detail-value" id="monthly-buildings-list">---</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">TOTAL Pagado este mes:</span>
+                                    <span class="detail-value total-paid-value" id="monthly-payment-total">S/ --</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="monthlyTotalChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="widget small-widget meta-anual-widget">
+                        <h2>Meta Anual</h2>
+                        <div class="goal-container">
+                            <p class="goal-values" id="monthly-goal-values">-- <span class="goal-target">Meta S/
+                                    --</span></p>
+                            <div class="progress-bar-container">
+                                <div class="progress-fill" id="monthly-goal-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ======================== GAMIFICACIÓN ======================== -->
+                    <div class="widget small-widget gamification-widget" data-role-visible="admin,docente">
+                        <h2>Ranking de Ahorro Energético 🏆</h2>
+                        <div id="gamification-list">
+                            <p>Cargando ranking...</p>
+                        </div>
+                    </div>
+                    <!-- ====================== WIDGET: Simulación de Ahorro ====================== -->
+                    <div class="widget small-widget simulacion-widget">
+                        <h2>Simulación de Ahorro Energético</h2>
+
+                        <label for="sim-pabellon">Pabellón:</label>
+                        <select id="sim-pabellon">
+                            <option value="" disabled selected>Seleccione</option>
+                            <option value="A">Pabellón A</option>
+                            <option value="B">Pabellón B</option>
+                            <option value="C">Pabellón C</option>
+                            <option value="D">Pabellón D</option>
+                            <option value="E">Pabellón E</option>
+                        </select>
+
+                        <label for="sim-porcentaje">Reducción estimada (%):</label>
+                        <input type="number" id="sim-porcentaje" min="1" max="50" value="10">
+
+                        <button id="sim-calcular" class="action-btn primary" style="margin-top: 10px;">Calcular</button>
+
+                        <div id="sim-resultados" style="margin-top: 15px; font-size: 0.9em;">
+                            <p><strong>Consumo actual:</strong> --</p>
+                            <p><strong>Costo actual:</strong> --</p>
+                            <p><strong>Nuevo consumo:</strong> --</p>
+                            <p><strong>Nuevo costo:</strong> --</p>
+                            <p><strong>Ahorro estimado:</strong> --</p>
+                        </div>
+                    </div>
+
+                    <div class="widget control-panel" data-role-visible="admin,docente">
+                        <h2>Controles Rápidos</h2>
+                        <div class="button-group">
+                            <button id="upload-data-btn" class="action-btn primary" data-role-visible="admin">
+                                Subir Datos 🚀
+                            </button>
+
+                            <button id="edit-data-btn" class="action-btn secondary" data-role-visible="admin">
+                                Editar/Eliminar Datos <i class="fas fa-edit"></i>
+                            </button>
+
+                            <button id="report-pdf-btn" class="action-btn secondary" data-role-visible="admin">
+                                Reporte PDF
+                            </button>
+
+                            <button id="config-goal-btn" class="action-btn secondary" data-role-visible="admin">
+                                Configurar Metas
+                            </button>
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ====================== CHAT VIEW ====================== -->
+            <div id="chat-view" class="view-content" style="display: none;">
+                <header class="main-header">
+                    <button class="menu-toggle-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Recomendaciones de IA 💬</h1>
+                </header>
+
+                <div class="chat-interface">
+                    <div id="messages-container" class="messages-container">
+                        <div class="message ai-message">
+                            Hola! Soy tu asistente de IA para recomendaciones energéticas. ¿En qué te puedo ayudar hoy?
+                        </div>
+                    </div>
+                    <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                        <span>Escribiendo...</span>
+                    </div>
+                    <div class="input-area">
+                        <input type="text" id="prompt-input" placeholder="Escribe tu consulta aquí..." autofocus>
+                        <button id="generate-button">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- ======= CONTENIDO PRINCIPAL ======= -->
-    <div class="main">
-      <!-- ======= TOPBAR ======= -->
-      <div class="topbar">
-        <h1>Dashboard de Energía Responsable</h1>
-        <div class="user">
-          <span>Admin</span>
-          <button class="login-button btn-logout" id="cerrar-sesion">Salir</button>
+    <!-- ====================== MODAL: Subida de Datos ====================== -->
+    <div id="data-upload-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Carga Manual de Datos</h3>
+                <span class="close-btn data-modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Aquí se ingresarán los datos de consumo (kWh) y costo pagado (S/)</p>
+                <form id="upload-form">
+                    <label for="building-select">Edificio / Pabellón:</label>
+                    <select id="building-select" required>
+                        <option value="" disabled selected>Seleccione Pabellón</option>
+                        <option value="a">Pabellón A</option>
+                        <option value="b">Pabellón B</option>
+                        <option value="c">Pabellón C</option>
+                        <option value="d">Pabellón D</option>
+                        <option value="e">Pabellón E</option>
+                    </select>
+                    <label for="consumption-input">Consumo (kWh):</label>
+                    <input type="number" id="consumption-input" placeholder="Ej: 45000" min="1" required>
+                    <label for="price-input">Precio pagado (S/):</label>
+                    <input type="number" id="price-input" placeholder="Ej: 3000.50" min="0" step="0.01" required>
+                    <label for="date-input">Mes y Año de Registro:</label>
+                    <input type="month" id="date-input" required>
+                    <button type="submit" class="action-btn primary full-width">Guardar en Firebase</button>
+                </form>
+            </div>
         </div>
-      </div>
-
-      <!-- ======= BARRA DE ACCIONES ======= -->
-      <div class="actions-bar">
-        <button class="login-button" id="subir-datos">➕ Subir Datos Manuales</button>
-        <button class="login-button btn-pdf" id="reporte-pdf">📄 Generar Reporte PDF</button>
-        <button class="login-button btn-delete" id="borrar-todo">✏️ Editar/Eliminar Registros</button>
-        <button class="login-button btn-meta" id="config-metas">🎯 Configurar Metas</button>
-      </div>
-
-      <!-- ======= GRID PRINCIPAL ======= -->
-      <div class="content-grid">
-        <div class="col-left">
-          <div class="cards">
-            <div class="card card-blue">
-              <h3>Facultad de Ingeniería</h3>
-              <div class="card-value" id="fac-ingenieria">0.00 kWh</div>
-            </div>
-            <div class="card card-orange">
-              <h3>Edificio de Administración</h3>
-              <div class="card-value" id="admin">0.00 kWh</div>
-            </div>
-            <div class="card card-green">
-              <h3>Biblioteca</h3>
-              <div class="card-value" id="biblio">0.00 kWh</div>
-            </div>
-            <div class="card card-yellow">
-              <h3>Centro de Estudiantes</h3>
-              <div class="card-value" id="centro">0.00 kWh</div>
-            </div>
-          </div>
-
-          <!-- ======= PANEL DE ALERTAS ======= -->
-          <div class="alerts-panel">
-            <h3>Alertas y Recomendaciones</h3>
-            <div class="alerts-list" id="alerts-list">
-              <p class="empty-alerts-message">Cargando alertas...</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- ======= COLUMNA DERECHA ======= -->
-        <div class="col-right">
-          <div class="stats">
-            <div class="stat-box">
-              <small>Consumo Total</small>
-              <div id="stat-energy">0.00</div>
-            </div>
-            <div class="stat-box">
-              <small>Edificios Monitoreados</small>
-              <div id="stat-edificios">00</div>
-            </div>
-            <div class="stat-box">
-              <small>Áreas con Alerta Alta</small>
-              <div id="stat-areas-alto">00</div>
-            </div>
-            <div class="stat-box">
-              <small>Total Alertas</small>
-              <div id="stat-alerts">00</div>
-            </div>
-          </div>
-
-          <div class="activity">
-            <h3 class="activity-title">Actividad Energética</h3>
-            <div class="chart-wrap">
-              <canvas id="activity-chart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ======= TABLA DE REGISTROS ======= -->
-      <div class="table-wrap">
-        <h3 class="table-title">Registros de Consumo Recientes</h3>
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Edificio</th>
-              <th>Consumo (kWh)</th>
-              <th>Fecha</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-consumo"></tbody>
-        </table>
-      </div>
     </div>
-  </div>
 
-  <!-- ======= MODAL GENERAL ======= -->
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modal-title">Título del Modal</h3>
-        <span class="close-btn" id="modal-close">×</span>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-    </div>
-  </div>
-
-  <!-- ======= SCRIPT DEL DASHBOARD ======= -->
-  <script type="module">
-    import { initDashboard } from "../../Controlador/dashboard-controller.js";
-    document.addEventListener("DOMContentLoaded", () => {
-      initDashboard();
-    });
-  </script>
-
-  <!-- ======= GUIMARBOT - ASISTENTE IA ======= -->
-  <div id="ai-widget" class="ai-widget">
-    <div id="ai-icon" class="ai-icon">🤖</div>
-    <div id="ai-window" class="ai-window">
-      <div class="ai-header">
-        <span>Asistente UCV</span>
-        <button id="ai-close">×</button>
-      </div>
-      <div id="ai-messages" class="ai-messages">
-        <div class="ai-bot-msg">
-          👋 ¡Hola! Soy <b>GuimarBot</b>, tu asistente virtual UCV.<br />
-          Pregúntame cualquier cosa.
+    <!-- ====================== MODAL: Configuración de Metas ====================== -->
+    <div id="goal-config-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Configuración de Meta de Ahorro Anual</h3>
+                <span class="close-btn goal-modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Establece la meta de pago total (S/) que la universidad busca alcanzar en el año actual.</p>
+                <form id="goal-config-form">
+                    <label for="current-payment-display">Pago Acumulado Actual (S/):</label>
+                    <input type="text" id="current-payment-display" value="Cargando..." readonly
+                        class="read-only-input">
+                    <label for="current-goal-input">Meta de Pago Anual (S/) para este año:</label>
+                    <input type="number" id="current-goal-input" placeholder="Ej: 50000.00" min="1" step="0.01"
+                        required>
+                    <button type="submit" class="action-btn primary full-width">Guardar Nueva Meta</button>
+                </form>
+            </div>
         </div>
-      </div>
-      <div class="ai-input-box">
-        <input id="ai-input" type="text" placeholder="Escribe tu mensaje..." />
-        <button id="ai-send">➤</button>
-      </div>
     </div>
-  </div>
 
-  <!-- ======= CONTROLADOR DE GUIMARBOT ======= -->
-  <script type="module" src="../../Controlador/controller.js"></script>
+    <!-- ====================== MODAL: Edición / Eliminación de Datos ====================== -->
+    <div id="edit-data-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar / Eliminar Registros</h3>
+                <span class="close-btn" data-modal="edit-data-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Seleccione el mes y el pabellón para modificar o eliminar el registro de consumo.</p>
+                <form id="edit-form">
+                    <label for="edit-month-select">Mes y Año de Registro:</label>
+                    <select id="edit-month-select" required>
+                        <option value="" disabled selected>Cargando meses...</option>
+                    </select>
+                    <label for="edit-building-select">Pabellón a Editar:</label>
+                    <select id="edit-building-select" required>
+                        <option value="" disabled selected>Seleccione un mes primero</option>
+                    </select>
+                    <div id="edit-fields-container" class="edit-fields-container" style="display: none;">
+                        <p style="font-size: 0.9em; margin-top: 5px; color: #5D8AA8;">
+                            Datos Actuales: Consumo: <span id="current-kwh">--</span>, Pago: <span
+                                id="current-price">--</span>
+                        </p>
+                        <label for="edit-consumption-input">Nuevo Consumo (kWh):</label>
+                        <input type="number" id="edit-consumption-input" placeholder="Consumo actual" min="0" step="1"
+                            required>
+                        <label for="edit-price-input">Nuevo Precio Pagado (S/):</label>
+                        <input type="number" id="edit-price-input" placeholder="Precio actual" min="0" step="0.01"
+                            required>
+                        <div class="button-group-actions">
+                            <button type="submit" id="save-edit-btn" class="action-btn primary"><i
+                                    class="fas fa-save"></i> Guardar Edición</button>
+                            <button type="button" id="delete-data-btn" class="action-btn delete"><i
+                                    class="fas fa-trash-alt"></i> Eliminar Registro</button>
+                        </div>
+                    </div>
+                    <p id="edit-message" class="message-status" style="margin-top: 15px;"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================== MODAL: Alertas Inteligentes ====================== -->
+    <div id="alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Alertas de Consumo Energético</h3>
+                <span class="close-btn" id="close-alert-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="alert-list">No hay alertas activas actualmente ✅</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================== SCRIPTS ====================== -->
+    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-ai.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js" type="module"></script>
+
+    <script src="/Controlador/dashboard-controller.js"></script>
+    <script type="module" src="/Modelo/script.js"></script>
 </body>
+
 </html>

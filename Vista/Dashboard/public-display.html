@@ -1,0 +1,104 @@
+<!-- Vista/Dashboard/public-display.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel Público – Consumo Energético UCV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../CSS/dashboard.css" />
+  <style>
+    body {
+      background: #f4f6fb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .public-wrapper {
+      max-width: 1200px;
+      margin: 20px auto;
+    }
+    .public-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .public-header h1 {
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+    .public-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .big-number {
+      font-size: 40px;
+      font-weight: 700;
+    }
+    .meta-bar {
+      width: 100%;
+      height: 10px;
+      background: #e3e7f2;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .meta-bar-fill {
+      height: 100%;
+      background: #4caf50;
+      width: 0%;
+      transition: width .5s ease;
+    }
+    .footer-text {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="public-wrapper">
+    <div class="public-header">
+      <h1>Consumo Energético – UCV</h1>
+      <p id="public-current-period">Cargando periodo...</p>
+    </div>
+
+    <div class="public-grid">
+      <div class="card">
+        <h2>Consumo Mensual Actual</h2>
+        <p class="big-number" id="public-monthly-consumption">– kWh</p>
+        <p id="public-pavilion-text"></p>
+      </div>
+
+      <div class="card">
+        <h2>Meta Anual</h2>
+        <p>Consumo actual vs meta</p>
+        <p id="public-annual-info"></p>
+        <div class="meta-bar">
+          <div class="meta-bar-fill" id="public-meta-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-text">
+      Vista pública en tiempo real – Proyecto Energía Responsable UCV
+    </p>
+  </div>
+
+  <!-- SDK Firebase v8 (asegúrate que coincida con lo que usas en otras páginas) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <!-- Inicialización y modelo -->
+  <script type="module" src="../../Modelo/firebase-init.js"></script>
+  <script type="module" src="../../Modelo/firebase-data.js"></script>
+
+  <!-- Controlador público -->
+  <script type="module" src="../../Controlador/public-display-controller.js"></script>
+</body>
+</html>

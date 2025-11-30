@@ -1,422 +1,510 @@
-// ======================================================
-// CONTROLADOR DEL DASHBOARD - VERSIÓN FINAL FUNCIONAL
-// ======================================================
+// =====================================================
+// 📊 DASHBOARD CONTROLLER - UCV
+// Manejo de gráficos, widgets y alertas inteligentes
+// =====================================================
 
-import { auth, db } from "../Modelo/firebase-init.js";
+// Variables globales para los gráficos
+let rankingChart = null;
+let comparisonChart = null;
 
-export function initDashboard() {
-  auth.onAuthStateChanged((user) => {
-    if (!user) {
-      window.location.href = "../Login/login.html";
-      return;
-    }
-    startRealtimeListeners();
-    bindUIActions();
-    loadMeta();
-  });
-}
-
-// ========================
-// REFERENCIA RÁPIDA
-// ========================
-const q = (id) => document.getElementById(id);
-
-// ========================
-// EVENTOS PRINCIPALES
-// ========================
-function bindUIActions() {
-  q("cerrar-sesion")?.addEventListener("click", () => auth.signOut());
-
-  q("subir-datos")?.addEventListener("click", () =>
-    openModal(
-      "Subir Datos Manuales",
-      `
-      <form id="form-upload">
-        <label>Edificio:</label>
-        <select id="edificio" required>
-          <option value="">Seleccione</option>
-          <option value="Facultad de Ingeniería">Facultad de Ingeniería</option>
-          <option value="Edificio de Administración">Edificio de Administración</option>
-          <option value="Biblioteca">Biblioteca</option>
-          <option value="Centro de Estudiantes">Centro de Estudiantes</option>
-        </select>
-
-        <label>Consumo (kWh):</label>
-        <input id="kwh" type="number" min="0" step="0.01" required />
-
-        <label>Fecha:</label>
-        <input id="fecha" type="date" required />
-
-        <button type="submit" class="login-button">Guardar</button>
-      </form>
-      `
-    )
-  );
-
-  q("reporte-pdf")?.addEventListener("click", () =>
-    openModal(
-      "Generar Reporte PDF",
-      `<p>¿Desea generar un reporte en PDF con los datos actuales?</p>
-       <button id="confirm-pdf" class="login-button btn-pdf">Confirmar</button>`
-    )
-  );
-
-  q("config-metas")?.addEventListener("click", () =>
-    openModal(
-      "Configurar Meta Anual",
-      `
-      <form id="form-meta">
-        <label>Meta Anual (kWh):</label>
-        <input id="meta" type="number" min="1" required />
-        <button type="submit" class="login-button">Guardar</button>
-      </form>
-      `
-    )
-  );
-
-  q("borrar-todo")?.addEventListener("click", loadEditDeleteModal);
-}
-
-// ========================
-// MODAL GENERAL
-// ========================
-function openModal(title, bodyHTML) {
-  const overlay = q("modal-overlay");
-  if (!overlay) return;
-
-  q("modal-title").textContent = title;
-  q("modal-body").innerHTML = bodyHTML;
-  overlay.style.display = "flex";
-
-  q("modal-close").onclick = () => (overlay.style.display = "none");
-
-  setTimeout(() => {
-    q("form-upload")?.addEventListener("submit", saveData);
-    q("form-meta")?.addEventListener("submit", saveMeta);
-    q("confirm-pdf")?.addEventListener("click", () => {
-      generatePDF();
-      overlay.style.display = "none";
-    });
-  }, 100);
-}
-
-// ========================
-// GUARDAR DATOS MANUALMENTE
-// ========================
-function saveData(e) {
-  e.preventDefault();
-
-  const edificio = q("edificio").value;
-  const kwh = parseFloat(q("kwh").value || 0);
-  const fecha = q("fecha").value;
-
-  if (!edificio || isNaN(kwh) || !fecha) return;
-
-  db.collection("consumos")
-    .add({
-      edificio,
-      kwh,
-      fecha: firebase.firestore.Timestamp.fromDate(new Date(fecha)),
-    })
-    .then(() => (q("modal-overlay").style.display = "none"));
-}
-
-// ========================
-// GUARDAR META ANUAL
-// ========================
-function saveMeta(e) {
-  e.preventDefault();
-  const meta = parseFloat(q("meta").value || 0);
-  if (isNaN(meta) || meta <= 0) return;
-
-  const userId = auth.currentUser?.uid;
-  if (!userId) return;
-
-  db.collection("metas").doc(userId).set({
-    meta,
-    fecha: firebase.firestore.Timestamp.now(),
-  });
-  q("modal-overlay").style.display = "none";
-}
-
-// ========================
-// CARGAR META GUARDADA
-// ========================
-function loadMeta() {
-  const userId = auth.currentUser?.uid;
-  if (!userId) return;
-
-  db.collection("metas")
-    .doc(userId)
-    .get()
-    .then((doc) => {
-      if (doc.exists) {
-        const meta = doc.data().meta;
-        const metaBox = q("meta-info");
-        if (metaBox) metaBox.textContent = `${meta} kWh`;
-      }
+/**
+ * 💰 Formato de dinero (Soles)
+ */
+function formatMoney(amount) {
+    if (amount === undefined || amount === null || amount === 0)
+        return 'S/ --';
+    return 'S/ ' + amount.toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
 }
 
-// ========================
-// ESCUCHAR CAMBIOS EN TIEMPO REAL
-// ========================
-function startRealtimeListeners() {
-  db.collection("consumos")
-    .orderBy("fecha", "desc")
-    .onSnapshot((snapshot) => {
-      const data = [];
-      snapshot.forEach((doc) => data.push({ id: doc.id, ...doc.data() }));
-      updateDashboard(data);
-    });
+/**
+ * ⚡ Formato de energía (kWh)
+ */
+function formatEnergy(amount) {
+    if (amount === undefined || amount === null || amount === 0)
+        return '-- kWh';
+    return amount.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' kWh';
 }
 
-// ========================
-// ACTUALIZAR DASHBOARD
-// ========================
-function updateDashboard(data) {
-  const totals = {};
-  data.forEach((r) => {
-    if (!totals[r.edificio]) totals[r.edificio] = 0;
-    totals[r.edificio] += r.kwh;
-  });
+// =====================================================
+// 1️⃣ Ranking Chart (Barras)
+// =====================================================
+window.initRankingChartWithData = function (labels, data) {
+    const el = document.getElementById('rankingChart');
+    if (!el) return;
+    const ctx = el.getContext('2d');
 
-  const ids = {
-    "Facultad de Ingeniería": "fac-ingenieria",
-    "Edificio de Administración": "admin",
-    Biblioteca: "biblio",
-    "Centro de Estudiantes": "centro",
-  };
+    if (rankingChart) rankingChart.destroy();
 
-  Object.keys(ids).forEach((ed) => {
-    q(ids[ed]).textContent = (totals[ed] || 0).toFixed(2) + " kWh";
-  });
-
-  const totalEnergy = Object.values(totals).reduce((a, b) => a + b, 0);
-  q("stat-energy").textContent = totalEnergy.toFixed(2);
-  q("stat-edificios").textContent = Object.keys(totals).length;
-
-  updateAlerts(totals);
-  updateTable(data);
-  updateChart(totals);
-}
-
-// ========================
-// ALERTAS Y RECOMENDACIONES
-// ========================
-function updateAlerts(totals) {
-  const alertsContainer = q("alerts-list");
-  alertsContainer.innerHTML = "";
-
-  let count = 0;
-  Object.keys(totals).forEach((edificio) => {
-    const consumo = totals[edificio];
-    let nivel = "";
-    let clase = "";
-
-    if (consumo > 300) {
-      nivel = "🚨 Consumo Alto";
-      clase = "alert-high-bg";
-    } else if (consumo > 150) {
-      nivel = "⚠️ Consumo Moderado";
-      clase = "alert-moderate-bg";
-    } else {
-      nivel = "✅ Buen Consumo";
-      clase = "alert-good-bg";
+    if (!labels || labels.length === 0) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.textAlign = 'center';
+        return;
     }
 
-    const alertDiv = document.createElement("div");
-    alertDiv.className = `alert-item ${clase}`;
-    alertDiv.innerHTML = `<strong>${nivel}</strong><br>${edificio} - ${consumo.toFixed(
-      2
-    )} kWh`;
-    alertsContainer.appendChild(alertDiv);
-    count++;
-  });
+    const sortedData = labels.map((label, index) => ({
+        label,
+        value: data[index] || 0
+    })).sort((a, b) => b.value - a.value);
 
-  if (!count) alertsContainer.innerHTML = "<p>No hay alertas registradas.</p>";
+    const sortedLabels = sortedData.map(item => item.label);
+    const sortedValues = sortedData.map(item => item.value);
 
-  q("stat-alerts").textContent = count;
-  q("stat-areas-alto").textContent = Object.values(totals).filter((v) => v > 300).length;
-}
-
-// ========================
-// TABLA DE REGISTROS
-// ========================
-function updateTable(data) {
-  const tbody = q("tabla-consumo");
-  tbody.innerHTML = "";
-
-  data.forEach((r) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.edificio}</td>
-      <td>${r.kwh.toFixed(2)}</td>
-      <td>${r.fecha.toDate().toLocaleDateString()}</td>
-      <td><button onclick="deleteRecord('${r.id}')">🗑️</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-window.deleteRecord = function (id) {
-  if (!confirm("¿Eliminar este registro?")) return;
-  db.collection("consumos").doc(id).delete();
+    rankingChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sortedLabels,
+            datasets: [{
+                label: 'Consumo (kWh)',
+                data: sortedValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Consumo (kWh)' }
+                }
+            }
+        }
+    });
 };
 
-// ========================
-// GRÁFICO DE CONSUMO
-// ========================
-let chart;
-function updateChart(totals) {
-  const ctx = q("activity-chart").getContext("2d");
-  const labels = Object.keys(totals);
-  const values = Object.values(totals);
+// =====================================================
+// 2️⃣ Comparison Chart (Línea)
+// =====================================================
+window.initComparisonChartWithData = function (labels, data) {
+    const el = document.getElementById('comparisonChart');
+    if (!el) return;
+    const ctx = el.getContext('2d');
 
-  if (chart) chart.destroy();
+    if (comparisonChart) comparisonChart.destroy();
 
-  chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Consumo (kWh)",
-          data: values,
-          backgroundColor: ["#007bff", "#ff9800", "#4caf50", "#ffc107"],
-        },
-      ],
-    },
-    options: { scales: { yAxes: [{ ticks: { beginAtZero: true } }] } },
-  });
-}
-
-// ========================
-// GENERAR REPORTE PDF
-// ========================
-async function generatePDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Reporte de Energía Responsable - UCV", pageWidth / 2, 15, { align: "center" });
-
-  doc.setFontSize(10);
-  doc.text("Generado: " + new Date().toLocaleString(), 10, 25);
-
-  const snapshot = await db.collection("consumos").orderBy("fecha", "desc").get();
-  if (snapshot.empty) return;
-
-  let registros = [];
-  snapshot.forEach((docSnap) => registros.push(docSnap.data()));
-
-  const totales = {};
-  registros.forEach((r) => {
-    if (!totales[r.edificio]) totales[r.edificio] = 0;
-    totales[r.edificio] += r.kwh;
-  });
-
-  doc.setFontSize(12);
-  doc.text("Resumen por Edificio:", 10, 40);
-
-  let y = 48;
-  for (const [edificio, consumo] of Object.entries(totales)) {
-    doc.text(`${edificio}: ${consumo.toFixed(2)} kWh`, 15, y);
-    y += 7;
-  }
-
-  y += 5;
-  doc.text("Registros Detallados:", 10, y);
-  y += 6;
-  doc.setFontSize(10);
-  doc.text("Edificio", 10, y);
-  doc.text("kWh", 80, y);
-  doc.text("Fecha", 130, y);
-  y += 5;
-  doc.line(10, y, 200, y);
-  y += 5;
-
-  registros.forEach((r) => {
-    doc.text(r.edificio, 10, y);
-    doc.text(r.kwh.toFixed(2), 80, y);
-    doc.text(r.fecha.toDate().toLocaleDateString(), 130, y);
-    y += 6;
-    if (y > 270) {
-      doc.addPage();
-      y = 20;
+    if (!labels || labels.length === 0 || data.every(val => val === 0)) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.textAlign = 'center';
+        return;
     }
-  });
 
-  const chartCanvas = document.getElementById("activity-chart");
-  if (chartCanvas) {
-    const img = chartCanvas.toDataURL("image/png", 1.0);
-    doc.addPage();
-    doc.text("Gráfico de Consumo Energético", pageWidth / 2, 15, { align: "center" });
-    doc.addImage(img, "PNG", 15, 25, 180, 100);
-  }
+    comparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Consumo Total Anual (kWh)',
+                data: data,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Consumo (kWh)' }
+                }
+            }
+        }
+    });
+};
 
-  doc.save("Reporte_Energia_UCV.pdf");
-}
+// =====================================================
+// 3️⃣ Widget Consumo Mensual Total (con Pago)
+// =====================================================
+window.updateMonthlyKwhTotal = function (totalKwh, participatingBuildings, totalPayment) {
+    const kwhElement = document.getElementById('monthly-kwh-total');
+    const buildingsElement = document.getElementById('monthly-buildings-list');
+    const paymentElement = document.getElementById('monthly-payment-total');
 
-// ========================
-// MODAL EDITAR / ELIMINAR
-// ========================
-async function loadEditDeleteModal() {
-  const snapshot = await db.collection("consumos").get();
-  if (snapshot.empty) {
-    openModal("Editar o Eliminar", "<p style='color:#888;'>No hay registros.</p>");
-    return;
-  }
+    if (kwhElement)
+        kwhElement.textContent = formatEnergy(totalKwh);
 
-  let html = `
-  <form id="edit-delete-form">
-    <label>Seleccione un registro:</label>
-    <select id="registro-select" required>
-      <option value="" disabled selected>Seleccione...</option>`;
+    if (buildingsElement) {
+        if (!participatingBuildings || totalKwh === 0 || participatingBuildings.length === 0) {
+            buildingsElement.textContent = 'Sin datos de pabellones.';
+            buildingsElement.style.color = '#777';
+        } else {
+            buildingsElement.textContent = participatingBuildings.join(', ');
+            buildingsElement.style.color = '#333';
+        }
+    }
 
-  snapshot.forEach((doc) => {
-    const d = doc.data();
-    const fecha = new Date(d.fecha.seconds * 1000).toLocaleDateString();
-    html += `<option value="${doc.id}">${d.edificio} - ${fecha} (${d.kwh} kWh)</option>`;
-  });
+    if (paymentElement)
+        paymentElement.textContent = formatMoney(totalPayment);
+};
 
-  html += `
-    </select>
-    <div id="edit-section" style="display:none;margin-top:15px;">
-      <label>Nuevo Consumo (kWh):</label>
-      <input id="nuevo-kwh" type="number" step="0.01" min="0" required />
-      <div style="display:flex;gap:10px;margin-top:10px;">
-        <button type="submit" class="login-button">Guardar</button>
-        <button type="button" id="delete-selected" class="login-button btn-delete">Eliminar</button>
-      </div>
-    </div>
-  </form>`;
+// =====================================================
+// 4️⃣ Meta Anual (Progreso)
+// =====================================================
+window.updateMonthlyGoal = function (current, target) {
+    const goalValuesElement = document.getElementById('monthly-goal-values');
+    const progressBarElement = document.getElementById('monthly-goal-progress');
 
-  openModal("Editar o Eliminar Registros", html);
+    if (!goalValuesElement || !progressBarElement) return;
 
-  setTimeout(() => {
-    const select = q("registro-select");
-    const section = q("edit-section");
-    const form = q("edit-delete-form");
-    const delBtn = q("delete-selected");
+    if (target === 0 || target === null || target === undefined) {
+        goalValuesElement.innerHTML = formatMoney(current) + ' <span class="goal-target">Meta S/ --</span>';
+        progressBarElement.style.width = '0%';
+        progressBarElement.style.backgroundColor = '#ccc';
+        return;
+    }
 
-    select.addEventListener("change", () => (section.style.display = "block"));
+    const percentage = Math.min(100, (current / target) * 100);
+    goalValuesElement.innerHTML = formatMoney(current) +
+        ' <span class="goal-target">Meta ' + formatMoney(target) + '</span>';
+    progressBarElement.style.width = percentage + '%';
+    progressBarElement.style.backgroundColor = percentage >= 100 ? '#dc3545' : '#28a745';
+};
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const id = select.value;
-      const nuevoKwh = parseFloat(q("nuevo-kwh").value);
-      await db.collection("consumos").doc(id).update({ kwh: nuevoKwh });
-      q("modal-overlay").style.display = "none";
+// =====================================================
+// 5️⃣ ALERTAS DE CONSUMO INTELIGENTES (USANDO EL MODAL)
+// - Clasificación: alta (>=120%), media (>=100%), baja (<100%)
+// - Se muestran siempre en el modal al hacer click en la campana
+// - La campana cambia de color según el estado (rojo si hay alta, naranja si hay media, negro/normal si solo bajas o ninguna)
+// =====================================================
+window.checkForEnergyAlerts = function () {
+    const promedio = window.promedioHistoricoConsumo || {};
+    const ultimo = window.ultimoConsumoMensual || {};
+
+    // Guardaremos alertas en esta estructura
+    const alertas = {
+        alta: [],
+        media: [],
+        baja: []
+    };
+
+    // Recorremos todos los pabellones que tiene último consumo
+    for (const pab in ultimo) {
+        const prom = Number(promedio[pab] || 0);
+        const ult = Number(ultimo[pab] || 0);
+
+        // Si no hay promedio (0) no podemos clasificar — lo saltamos
+        if (prom === 0 && ult === 0) continue;
+        if (prom === 0 && ult > 0) {
+            // Si no hay promedio pero hay consumo reciente considerarlo como 'media' (o puedes ajustarlo)
+            alertas.media.push(`🟡 ${pab}: Consumo reportado (${ult.toLocaleString('es-ES')} kWh) — sin promedio histórico.`);
+            continue;
+        }
+
+        // Evitar division por 0
+        if (prom === 0) continue;
+
+        const ratio = ult / prom;
+
+        if (ratio >= 1.20) {
+            alertas.alta.push(`🔴 ${pab}: Consumo ALTO (${ult.toLocaleString('es-ES')} kWh) — Promedio: ${prom.toLocaleString('es-ES')} kWh`);
+        } else if (ratio >= 1.0) {
+            alertas.media.push(`🟡 ${pab}: Consumo MEDIO (${ult.toLocaleString('es-ES')} kWh) — Promedio: ${prom.toLocaleString('es-ES')} kWh`);
+        } else {
+            alertas.baja.push(`🟢 ${pab}: Consumo OK (${ult.toLocaleString('es-ES')} kWh) — Promedio: ${prom.toLocaleString('es-ES')} kWh`);
+        }
+    }
+
+    // Guardamos alertas activas en una variable global (útil para mostrar en otros sitios)
+    // Unificamos todas en un array ordenado: altas → medias → bajas
+    window.activeAlerts = [].concat(alertas.alta, alertas.media, alertas.baja);
+
+    // Actualizar la campana visualmente
+    const bellIcon = document.querySelector(".notification-icon");
+    if (bellIcon) {
+        // Limpiar clases previas
+        bellIcon.classList.remove("active-alert", "medium-alert", "low-alert");
+
+        if (alertas.alta.length > 0) {
+            // Si existen alertas altas, campana roja
+            bellIcon.classList.add("active-alert");
+            bellIcon.setAttribute("title", `${alertas.alta.length} alerta(s) ALTA(S)`);
+        } else if (alertas.media.length > 0) {
+            // Si existen medias pero no altas, campana naranja
+            bellIcon.classList.add("medium-alert");
+            bellIcon.setAttribute("title", `${alertas.media.length} alerta(s) MEDIA(S)`);
+        } else if (alertas.baja.length > 0) {
+            // Si solo hay bajas, la campana indica OK pero mostramos conteo
+            bellIcon.classList.add("low-alert");
+            bellIcon.setAttribute("title", `${alertas.baja.length} alerta(s) baja(s) - todo dentro de rango`);
+        } else {
+            // No hay alertas
+            bellIcon.removeAttribute("title");
+        }
+    }
+
+    // También queremos que el modal muestre todas las alertas ordenadas por severidad
+    const alertListEl = document.getElementById('alert-list');
+    if (alertListEl) {
+        if (window.activeAlerts.length === 0) {
+            alertListEl.innerHTML = "No hay alertas activas actualmente ✅";
+        } else {
+            // Construimos HTML con secciones
+            let html = '';
+
+            if (alertas.alta.length > 0) {
+                html += `<div style="margin-bottom:6px;"><h4 style="margin:4px 0;color:#b02a37">🔴 Alertas Altas</h4>`;
+                alertas.alta.forEach(a => { html += `<p style="margin:2px 0">${a}</p>`; });
+                html += `</div>`;
+            }
+
+            if (alertas.media.length > 0) {
+                html += `<div style="margin-bottom:6px;"><h4 style="margin:4px 0;color:#b37400">🟡 Alertas Medias</h4>`;
+                alertas.media.forEach(a => { html += `<p style="margin:2px 0">${a}</p>`; });
+                html += `</div>`;
+            }
+
+            if (alertas.baja.length > 0) {
+                html += `<div style="margin-bottom:6px;"><h4 style="margin:4px 0;color:#2e7d32">🟢 Alertas Bajas</h4>`;
+                alertas.baja.forEach(a => { html += `<p style="margin:2px 0">${a}</p>`; });
+                html += `</div>`;
+            }
+
+            alertListEl.innerHTML = html;
+        }
+    }
+};
+
+// =====================================================
+// 6️⃣ Gráfico Mensual: Actual vs Promedio Histórico
+// =====================================================
+window.initMonthlyComparisonChart = function (labels, consumoActual, consumoPromedio) {
+    const el = document.getElementById("monthlyTotalChart");
+    if (!el) return;
+    const ctx = el.getContext("2d");
+
+    if (window.monthlyTotalChart) {
+        window.monthlyTotalChart.destroy();
+    }
+
+    window.monthlyTotalChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Consumo del Mes (kWh)",
+                    data: consumoActual,
+                    backgroundColor: "rgba(54, 162, 235, 0.7)"
+                },
+                {
+                    label: "Promedio Histórico (kWh)",
+                    data: consumoPromedio,
+                    backgroundColor: "rgba(201, 203, 207, 0.7)"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+};
+
+// =====================================================
+// 🏆 RANKING DE AHORRO ENERGÉTICO (GAMIFICACIÓN)
+// =====================================================
+window.updateGamificationRanking = function () {
+    const promedio = window.promedioHistoricoConsumo || {};
+    const ultimo = window.ultimoConsumoMensual || {};
+
+    const rankingContainer = document.getElementById("gamification-list");
+    if (!rankingContainer) return;
+
+    let ranking = [];
+
+    for (const pab in promedio) {
+        const prom = promedio[pab];
+        const ult = ultimo[pab];
+
+        if (prom === 0) continue;
+
+        const ahorro = ((prom - ult) / prom) * 100;
+
+        ranking.push({
+            pabellon: pab,
+            promedio: prom,
+            actual: ult,
+            ahorro: ahorro
+        });
+    }
+
+    ranking.sort((a, b) => b.ahorro - a.ahorro);
+
+    if (ranking.length === 0) {
+        rankingContainer.innerHTML = "<p>No hay datos suficientes.</p>";
+        return;
+    }
+
+    rankingContainer.innerHTML = ranking.map((item, index) => {
+        const medal = index === 0 ? "🥇" :
+            index === 1 ? "🥈" :
+                index === 2 ? "🥉" : "🔹";
+
+        return `
+            <p>${medal} <strong>Pabellón ${item.pabellon}</strong> — Ahorro: ${item.ahorro.toFixed(1)}%</p>
+        `;
+    }).join("");
+};
+
+// ======================================================================
+// 🔔 MODALES + SIMULADOR DE AHORRO
+// ======================================================================
+document.addEventListener("DOMContentLoaded", () => {
+
+    // ==========================
+    // 🔔 MODAL: ALERTAS
+    // ==========================
+    const bellIcon = document.querySelector(".notification-icon");
+    const alertModal = document.getElementById("alert-modal");
+    const closeBtn = document.getElementById("close-alert-modal");
+    const alertList = document.getElementById("alert-list");
+
+    // Aseguramos que la campana refleje el estado actual al iniciar
+    if (typeof window.checkForEnergyAlerts === "function") {
+        // esperar un tick para que datos (si existen) se hayan calculado
+        setTimeout(() => {
+            try { window.checkForEnergyAlerts(); } catch (e) { console.error(e); }
+        }, 200);
+    }
+
+    if (bellIcon) {
+        bellIcon.addEventListener("click", () => {
+            // Mostrar contenido del modal (ya fue generado por checkForEnergyAlerts)
+            if (window.activeAlerts && window.activeAlerts.length > 0) {
+                // Si existen alertas activas, alertList ya contiene HTML clasificado
+                // (checkForEnergyAlerts se encarga de actualizar alert-list)
+            } else {
+                // si no existen, asegurar mensaje
+                if (alertList) alertList.textContent = "No hay alertas activas actualmente ✅";
+            }
+
+            if (alertModal) alertModal.classList.add("active");
+
+            // Al abrir el modal, se considera "leído": restaurar apariencia normal de la campana
+            bellIcon.classList.remove("active-alert", "medium-alert", "low-alert");
+            bellIcon.removeAttribute("title");
+
+            // NOTA: No destruyo window.activeAlerts aquí para que puedas ver el detalle,
+            // pero si quieres que al abrir modal las alertas se consideren leídas y se borren:
+            // window.activeAlerts = [];
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            if (alertModal) alertModal.classList.remove("active");
+        });
+    }
+
+    window.addEventListener("click", (e) => {
+        if (e.target === alertModal) {
+            alertModal.classList.remove("active");
+        }
     });
 
-    delBtn.addEventListener("click", async () => {
-      const id = select.value;
-      if (!confirm("¿Seguro que deseas eliminar este registro?")) return;
-      await db.collection("consumos").doc(id).delete();
-      q("modal-overlay").style.display = "none";
+    // ==========================
+    // 🟩 SIMULADOR DE AHORRO
+    // ==========================
+    const btnCalcular = document.getElementById("sim-calcular");
+    const selectPab = document.getElementById("sim-pabellon");
+    const inputPorc = document.getElementById("sim-porcentaje");
+    const divResultados = document.getElementById("sim-resultados");
+
+    if (btnCalcular) {
+        btnCalcular.addEventListener("click", () => {
+            const pab = selectPab.value;
+            const porc = Number(inputPorc.value);
+
+            if (!pab) {
+                alert("Seleccione un pabellón.");
+                return;
+            }
+
+            if (!window.ultimoConsumoMensual || !window.fullConsumoDataCache) {
+                alert("No hay datos suficientes para realizar la simulación.");
+                return;
+            }
+
+            const consumoActual = window.ultimoConsumoMensual[pab] || 0;
+            let costoActual = 0;
+
+            const pabData = window.fullConsumoDataCache[pab.toLowerCase()];
+            if (pabData) {
+                const years = Object.keys(pabData).sort();
+                const lastYear = years[years.length - 1];
+                const months = Object.keys(pabData[lastYear]).sort();
+                const lastMonth = months[months.length - 1];
+
+                costoActual = Number(pabData[lastYear][lastMonth].price) || 0;
+            }
+
+            const nuevoConsumo = consumoActual - (consumoActual * porc / 100);
+            const nuevoCosto = costoActual - (costoActual * porc / 100);
+            const ahorro = costoActual - nuevoCosto;
+
+            divResultados.innerHTML = `
+                <p><strong>Consumo actual:</strong> ${consumoActual.toLocaleString("es-ES")} kWh</p>
+                <p><strong>Costo actual:</strong> S/ ${costoActual.toFixed(2)}</p>
+                <p><strong>Nuevo consumo:</strong> ${nuevoConsumo.toLocaleString("es-ES")} kWh</p>
+                <p><strong>Nuevo costo:</strong> S/ ${nuevoCosto.toFixed(2)}</p>
+                <p><strong>Ahorro estimado:</strong> 
+                   <span style="color:green; font-weight:bold;">S/ ${ahorro.toFixed(2)}</span>
+                </p>
+            `;
+        });
+    }
+    // ========================== GESTIÓN DE ROLES (RF13) ==========================
+
+    // Aplica permisos de visualización según el rol guardado en localStorage
+    function applyRolePermissions() {
+        // Rol guardado al hacer login (controller.js)
+        const role = localStorage.getItem('ucvEnergyRole') || 'estudiante';
+        console.log('[Roles] Rol actual:', role);
+
+        // Mostrar el rol en el sidebar
+        const roleLabel = document.getElementById('current-user-role-label');
+        if (roleLabel) {
+            const names = {
+                admin: 'Administrador',
+                docente: 'Docente',
+                estudiante: 'Estudiante'
+            };
+            roleLabel.textContent = names[role] || role;
+        }
+
+        // Ocultar elementos con data-role-visible si el rol NO está permitido
+        document.querySelectorAll('[data-role-visible]').forEach(el => {
+            const allowed = (el.getAttribute('data-role-visible') || '')
+                .split(',')
+                .map(r => r.trim())
+                .filter(r => r.length > 0);
+
+            if (allowed.length > 0 && !allowed.includes(role)) {
+                el.style.display = 'none';
+            }
+        });
+    }
+
+    // Ejecutar cuando cargue el dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            applyRolePermissions();
+        } catch (e) {
+            console.error('Error aplicando permisos de rol:', e);
+        }
     });
-  }, 300);
-}
+
+
+}); // FIN DEL DOMContentLoaded
