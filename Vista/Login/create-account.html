@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../img/logo1.png" />
+    <title>Crear Cuenta - Energy UCV</title>
+    <link rel="stylesheet" href="../CSS/login.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module" src="../../Modelo/firebase-init.js"></script>
+
+</head>
+
+<body>
+    <div id="notification-container"></div>
+
+    <img src="../img/ucv_logo.png" alt="Universidad César Vallejo Logo" class="ucv-logo">
+
+    <div class="login-container">
+
+        <div class="login-form-card">
+            <div class="form-header">
+                <h2 class="welcome-title">¡Únete a Energy UCV!</h2>
+                <p class="please-enter">Crea tu cuenta para comenzar a visualizar el consumo de energia de tu pabellon.
+                </p>
+            </div>
+
+            <form id="register-form" action="#" method="POST">
+
+                <div class="input-group">
+                    <input type="text" id="name" placeholder="Nombre Completo" required>
+                    <span class="icon-email material-icons-outlined">person_outline</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="Correo Electrónico" required>
+                    <span class="icon-email material-icons-outlined">mail_outline</span>
+                </div>
+
+
+
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Contraseña" required>
+                    <span class="icon-password material-icons-outlined toggle-password-btn">visibility_off</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" id="confirm-password" placeholder="Confirmar Contraseña" required>
+                    <span class="icon-password material-icons-outlined toggle-password-btn">visibility_off</span>
+                </div>
+
+
+                <div class="form-footer-controls">
+                    <p class="agreement">
+                        Al registrarte, aceptas nuestros
+                        <a href="#" class="primary-link">Términos y Condiciones</a>
+                    </p>
+                </div>
+
+                <button type="submit" class="login-button">
+                    Registrarse
+                    <span class="material-icons-outlined">person_add</span>
+                </button>
+                
+                <!-- Selector de rol de usuario (NUEVO) -->
+                <div class="form-group">
+                    <label for="role">Tipo de usuario</label>
+                    <select id="role" required>
+                        <option value="estudiante">Estudiante</option>
+                        <option value="docente">Docente</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+
+
+            </form>
+
+            <p class="create-account-prompt">
+                ¿Ya tienes una cuenta?
+                <a href="login.html" class="primary-link">Iniciar Sesión</a>
+            </p>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // 🔑 Importar la función togglePassword (y la función de registro)
+        import { registerController, togglePassword } from '../../Controlador/controller.js';
+
+        // 1. Usar querySelectorAll para obtener todos los elementos con la CLASE
+        const toggleButtons = document.querySelectorAll('.toggle-password-btn');
+
+
+        // 2. Iterar sobre la lista de botones y agregar el evento a CADA UNO
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', togglePassword);
+        });
+
+        // 3. Vincula el controlador de registro al formulario (usa el ID corregido)
+        document.getElementById('register-form').addEventListener('submit', registerController);
+    </script>
+
+</body>
+
+</html>
