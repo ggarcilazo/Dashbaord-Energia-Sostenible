@@ -15,11 +15,9 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-// Exportar auth, db y functions (cliente v8)
+// Exportar auth y db (Firestore)
 export const auth = firebase.auth();
 export const db = firebase.firestore();
-export const functions = firebase.functions ? firebase.functions() : null;
-export const firebaseNamespace = firebase;
 
 
 
