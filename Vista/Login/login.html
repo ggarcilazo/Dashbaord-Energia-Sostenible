@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="icon" type="image/svg+xml" href="/Vista/img/logo1.png" />
+    <link rel="icon" type="image/svg+xml" href="../img/logo1.png" />
 
     <title>Acceso - Energy UCV</title>
-    <link rel="stylesheet" href="/Vista/CSS/login.css"> 
+    <link rel="stylesheet" href="../CSS/login.css"> 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script type="module" src="/Modelo/firebase-init.js"></script> 
+    <script type="module" src="../../Modelo/firebase-init.js"></script> 
 
 </head>
 
@@ -21,7 +21,7 @@
 
     <div id="notification-container"></div>
 
-    <img src="/Vista/img/ucv_logo.png" alt="Universidad César Vallejo Logo" class="ucv-logo">
+    <img src="../img/ucv_logo.png" alt="Universidad César Vallejo Logo" class="ucv-logo">
 
     <div class="login-container">
     
@@ -45,7 +45,7 @@
             <div class="form-footer-controls">
                 <p class="agreement">
                     Al iniciar sesión, aceptas nuestros 
-                    <a href="TÉRMINOS Y CONDICIONES DE USO DE ENERGY UCV.pdf" class="primary-link" target="_blank" download>Términos y Condiciones</a>
+                    <a href="TERMINOS_Y_CONDICIONES_ENERGY_UCV.pdf" class="primary-link" target="_blank" download>Términos y Condiciones</a>
                 </p>
                 <a href="forgot-password.html" class="forgot-password">¿Olvidaste tu Contraseña?</a>
             </div>
@@ -66,7 +66,7 @@
     </div>
 
     <script type="module">
-    import { loginController, togglePassword } from '/Controlador/controller.js';
+    import { loginController, togglePassword } from '../../Controlador/controller.js';
     
     // Vincula el evento de click al ícono
     document.getElementById('toggle-password-icon').addEventListener('click', togglePassword); 
