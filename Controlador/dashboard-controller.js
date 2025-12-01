@@ -497,14 +497,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Ejecutar cuando cargue el dashboard
-    document.addEventListener('DOMContentLoaded', () => {
-        try {
-            applyRolePermissions();
-        } catch (e) {
-            console.error('Error aplicando permisos de rol:', e);
-        }
-    });
+    // Ejecutar cuando cargue el dashboard (estamos ya dentro de DOMContentLoaded)
+    try {
+        applyRolePermissions();
+    } catch (e) {
+        console.error('Error aplicando permisos de rol:', e);
+    }
 
 
 }); // FIN DEL DOMContentLoaded

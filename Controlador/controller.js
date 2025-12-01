@@ -1,7 +1,7 @@
 // Controlador/controller.js
 
 // 🔑 Importar la instancia 'auth' (El Modelo)
-import { auth } from '../Modelo/firebase-init.js';
+import { auth, functions } from '../Modelo/firebase-init.js';
 import { saveUserRole, getUserRole } from '../Modelo/firebase-data.js';
 
 // --- FUNCIÓN DE NOTIFICACIÓN PERSONALIZADA ---
@@ -103,24 +103,69 @@ export function registerController(e) {
       // 🔹 Guardamos el rol en la colección "users"
       const uid = cred.user.uid;
 
-      await saveUserRole(uid, {
-        email,
-        role,
-        createdAt: new Date().toISOString(),
-      });
+      // Use a Cloud Function (callable) to save profile server-side via Admin SDK.
+      // This avoids Firestore client rules issues when trying to write from the client.
+      let functionSaveSucceeded = false;
+      try {
+        if (functions && typeof functions.httpsCallable === 'function') {
+          const createUserProfile = functions.httpsCallable('createUserProfile');
+          const payload = { role: role || 'estudiante' };
+          // callable functions automatically carry the user's auth context
+          await createUserProfile(payload);
+          functionSaveSucceeded = true;
+        } else {
+          // Fallback: attempt to save directly to Firestore client (may fail due to rules)
+          await saveUserRole(uid, { email, role, createdAt: new Date().toISOString() });
+          functionSaveSucceeded = true;
+        }
+      } catch (error) {
+        console.error('Error guardando rol del usuario en Firestore:', error);
+        // Si falla la escritura en Firestore por permisos, intentamos revertir el usuario creado en Auth
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          try {
+            await currentUser.delete();
+            showNotification('Cuenta creada en Auth, pero no se pudo guardar el perfil en la base de datos. La cuenta ha sido eliminada. Contacta al administrador para más detalles.', 'error');
+          } catch (deleteError) {
+            console.error('No se pudo eliminar la cuenta luego de fallo en Firestore:', deleteError);
+            showNotification('Se creó la cuenta pero hubo un problema al guardar el perfil y no se pudo eliminar la cuenta. Pide soporte al administrador.', 'error');
+          }
+        } else {
+          showNotification('Cuenta creada, pero no se pudo guardar el perfil en la base de datos. Contacta al administrador.', 'error');
+        }
+        return;
+      }
 
-      showNotification(
-        'Cuenta creada exitosamente. Por favor, inicia sesión.',
-        'success'
-      );
+      if (functionSaveSucceeded) {
+        showNotification('Cuenta creada exitosamente. Por favor, inicia sesión.', 'success');
+      } else {
+        showNotification('La cuenta fue creada, pero hubo problemas guardando el perfil. Contacta al administrador.', 'info');
+      }
 
       setTimeout(() => {
         window.location.href = 'login.html';
       }, 1000);
     })
     .catch((error) => {
-      console.error(error);
-      showNotification(`Error de Registro: ${error.message}`, 'error');
+      console.error('Error durante el registro:', error);
+
+      // Mapear códigos de error comunes para mensajes amistosos
+      let userMessage = 'Error de Registro. Intenta nuevamente.';
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          userMessage = 'El correo ya está en uso. Intenta iniciar sesión o usa la opción "Olvidé mi contraseña".';
+          break;
+        case 'auth/invalid-email':
+          userMessage = 'El formato del correo electrónico es inválido.';
+          break;
+        case 'auth/weak-password':
+          userMessage = 'La contraseña es muy débil. Usa al menos 6 caracteres.';
+          break;
+        default:
+          userMessage = `Error de Registro: ${error.message}`;
+      }
+
+      showNotification(userMessage, 'error');
     });
 }
 

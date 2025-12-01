@@ -4,21 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="/Vista/img/logo1.png" />
+    <link rel="icon" type="image/svg+xml" href="../img/logo1.png" />
     <title>Crear Cuenta - Energy UCV</title>
-    <link rel="stylesheet" href="/Vista/CSS/login.css">
+    <link rel="stylesheet" href="../CSS/login.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script type="module" src="/Modelo/firebase-init.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script type="module" src="../../Modelo/firebase-init.js"></script>
 
 </head>
 
 <body>
     <div id="notification-container"></div>
 
-    <img src="/Vista/img/ucv_logo.png" alt="Universidad César Vallejo Logo" class="ucv-logo">
+    <img src="../img/ucv_logo.png" alt="Universidad César Vallejo Logo" class="ucv-logo">
 
     <div class="login-container">
 
@@ -89,7 +90,7 @@
 
     <script type="module">
         // 🔑 Importar la función togglePassword (y la función de registro)
-        import { registerController, togglePassword } from '/Controlador/controller.js';
+        import { registerController, togglePassword } from '../../Controlador/controller.js';
 
         // 1. Usar querySelectorAll para obtener todos los elementos con la CLASE
         const toggleButtons = document.querySelectorAll('.toggle-password-btn');
